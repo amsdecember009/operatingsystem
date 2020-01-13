@@ -1,0 +1,33 @@
+     echo -e "#############################################################"
+     echo -e "####################  format_mvgdir  ########################"
+     echo -e "#############################################################"
+
+  format_mvgdir(){
+	    if [[ $LVM -eq 1 ]]; then
+	    lvm_list=(`lsblk -p | grep /dev/mvg/ | awk '{ print $1 }'`)
+	    read -p "enter number lvm" number_lvm
+	    i=1
+	      while [[ $i -le $number_lvm ]]; do
+	        mvg_list=(`lsblk -p | grep /dev/mvg/ | awk '{ print $1 }'`)
+	        PS3="$prompt1"
+          select mvg in "${mvg_list[@]}"; do
+            if contains_element ${mvg} ${mvg_list[@]}; then
+              echo -e "${mvg}"
+              read -p "enter corresponding mvg directory name" $dir_name
+              # following assumes stored variable is command execution
+              name_full=$(`mkdir /mnt/${dir_name}`)
+              # mount read name to corresponding mvg filesystem
+              mount $mvg $name_full
+            else
+              echo -e "NO MVG IN MVG LIST"
+            i=$(( i + 1 ))
+            fi
+            done
+          done
+      else
+          echo -e "LVM NOT EQUAL TO 1"
+      fi
+    }
+     echo -e "#############################################################"
+     echo -e "#####################  bash_mount  ##########################"
+     echo -e "#############################################################"

@@ -1,0 +1,104 @@
+#!/bin/bash
+
+#######################
+##########################################
+#############################################################
+# NOTES FUNCTIONS
+#############################################################
+##########################################
+#######################
+
+# function dm-crypt wipe selected device / devices {
+	# function select device /* use select device general */ 
+		# function select device $encrypt_harddrive> */ might use seperate functions /*
+		# function select device $encrypt_usb> */ might use seperate functions /*
+	#function wipe selected device
+	# use variable statements selected above
+	#### do the rest below another file ####
+		# prompt information safely wipe device
+		# function display cryptsetup hdparm method wipe device
+			# prompt hdpram option general information
+			# prompt cryptsetup general information 
+		# function display available devices and drives
+		# function select devices to be wiped
+		# input devices to be wiped within function :: within fuction wipe selected
+			# selection cryptsetup options for securely wiping drive ie plain luksformat urandom against random
+			# select then name each device ie format: /dev/<selected_device> <name_container_to_be_wiped> // prompt ask user whether sure
+			# run cryptsetup list devices selected
+				# for selected within device_range 
+					# cryptsetup open --type plain -d /dev/urandom /dev/$selected_device name_container_to_be_wiped
+				# selection cryptsetup options for securely wiping drive ie plain luksformat urandom against random
+		      		# selection name for wipe container set default names ie wipe container one wipe container two
+				# automate tmux each instance dd to seperate running tmux instance to speed up process. 
+				# dd if=/dev/zero of=/dev/mapper/$selected_device status=progress
+				# cryptsetup close <name_container_to_be_wiped> in a list until all closed
+				# verify all close 
+	
+# 
+
+
+
+########################################################
+#######################################
+#####################
+
+#crypsetup_selection_main(){
+#	crypt_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd\|nvme\|mmcblk'`);
+#	PS3="prompt1"
+wipe_device(){
+	echo -e "Please Select Device to Be Wiped Clean"
+	select_device
+	crypt_chosen=$selected_device
+	cryptsetup open $crypt_chosen  
+}
+
+
+### Check element exist in string ###
+contains_element(){ 
+	#check if an element exist in a string
+	for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
+}
+
+### general select device out of devices listed /dev/sdX
+select_device(){
+	device_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd\|nvme\|mmcblk'`);
+	PS3="$prompt1"
+	echo -e "Attached Devices /dev/sdx:\n"
+	lsblk -lnp -I 2,3,8,9,22,34,56,57,58,65,66,67,68,69,70,71,72,91,128,129,130,131,132,133,134,135,259 | awk '{print $1, $4, $6, $7}'| column -t 
+	echo -e "\n"
+	echo -e "Select Device:\n"
+	select device in "${device_list[@]}"; do 
+		if contains_element "${device}" "${device_list[@]}"; then
+			break
+		else
+			echo -e "invalid_option function:\n"
+		fi
+	done
+	selected_device=$device
+	echo -e $selected_device
+}
+
+### Function Select Device Main Harddrive By 'by-id' value ###
+select_main() {
+	available_main=(`ls -l /dev/disk/by-id/ | awk '{ print $9 }'`); 
+	PS3="$prompt1"
+	echo -e "Attached Devices by ls -l /dev/disk/by-id/:\n"
+	select OPT in "${available_main[@]}"; do
+		if contains_element "${OPT}" "${available_main[@]}"; then
+			main=$OPT
+			break
+		else
+			echo -e "invalid_option function:\n"
+		fi
+	done
+	echo -e $main
+}
+crypt_device
+select_main
+select_device
+
+	
+
+
+
+

@@ -1,0 +1,43 @@
+     echo -e "##########################################################"
+     echo -e "###################  setup_lvm   #########################"
+     echo -e "##########################################################"
+
+  setup_lvm(){
+		    if [[ $LUKS -eq 1 ]]; then
+		    read "pleae enter name main drive" main_name
+			  pvcreate /dev/mapper/${main_name}
+			  vgcreate mvg /dev/mapper/${main_name}
+		    else
+			  block_list=(`lsblk | grep 'part' | awk '{print "/dev/" substr($1, 3)}'`)
+			  PS3="$prompt1"
+			  echo -r "selection partition:"
+			  select OPT in "${block_list[@]}"; do
+				  if contains_element "$OPT" "${block_list[@]}"; then
+					  pvcreate $OPT
+					  vgcreate mvg $OPT
+					  break
+				else
+					invalid_option
+				fi
+			  done
+		    fi
+		    read -p "Enter number partitions [ex: 2]: " number_partitions
+		    i=1
+		    while [[ $i -le $number_partitions ]]; do
+			  read -p "Enter $i partition name [ex: home]: " partition_name
+			  if [[ $i -eq $number_partitions ]]; then
+				  lvcreate -l 100%FREE mvg -n ${partition_name}
+			  else
+				  read -p "enter $i partition size [ex: 25G, 200M]: " partition_size
+				  lvcreate -L ${partition_size} mvg -n ${partition_name}
+				  if [[ "swap" -eq $partition_name ]]; then
+				    mkswap /dev/mvg/$partition_name
+				    swapon /dev/mvg/$partition_name
+				  else
+				    mkfs.ext4 /dev/mvg/${partition_name}
+				  fi
+			fi
+			i=$(( i + 1 ))
+		  done
+		  LVM=1
+	  }

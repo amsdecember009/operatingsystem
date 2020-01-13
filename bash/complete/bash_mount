@@ -1,0 +1,13 @@
+  bash_mount(){
+      if [[ $partitions_usb -eq 1 ]]; then
+        base_list=(`lsblk -p | grep '/dev/sd' | awk '{ print $1 }'`)
+        PS3="$prompt1"
+        select base in "${base_list[@]}"; do
+          if contains_element "${base}" "${base_list[@]}"; then
+            mount $base /mnt/efi
+          else
+            echo -e "invalid_option"
+          fi
+          done
+      fi
+  }
